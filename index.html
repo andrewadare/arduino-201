@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Arduino 201 @ SSD</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+    <link rel="stylesheet" href="reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="css/black.css">
+    <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h1>Arduino 201</h1>
+          <p style="text-align: center;"><span class="ino-white"><strong>Tips for your next project</strong></span></p>
+          <p style="text-align: center;">Todd Lawall and Andrew Adare</p>
+          <p style="text-align: center;">December 1, 2016 @ Solid State Depot</p>
+          <aside class="notes">
+            <ul>
+              <li>Welcome</li>
+              <li>Format for session: 1 hr presentation, then hands-on</li>
+            </ul>
+          </aside>
+        </section>
+        <section class="center">
+          <p style="text-align: center;">You didn't miss <span class="ino-white"><strong>"Arduino 101"</strong></span> - we skipped it.</p>
+          <aside class="notes">
+            <p>We're assuming you have your IDE set up and have some basics down.</p>
+          </aside>
+        </section>
+        <section class="center">
+          <h2>outline</h2>
+        </section>
+        <section>
+          <p><span class="ino-orange"><strong>Hardware</strong></span>
+            <ul>
+              <li>Powering your project</li>
+              <li>Current considerations, large loads</li>
+              <li>Overview of MCU peripherals</li>
+              <li>Signal conditioning</li>
+            </ul>
+          </p>
+          <aside class="notes">
+            <ul>
+              <li>Hardware: how not to zap your pins, avoiding brownouts, electronics tips go here</li>
+            </ul>
+          </aside>
+        </section>
+        <section>
+          <p><span class="ino-orange"><strong>Host software</strong></span>
+            <ul>
+              <li>Using the Arduino CLI and your own editor</li>
+              <li>Writing custom library classes</li>
+              <li>Communicating externally</li>
+            </ul>
+          </p>
+          <aside class="notes">
+            <ul>
+              <li>Software: how I use the IDE as a toolchain in headless mode</li>
+              <li>Firmware: bulk of the talk spent here</li>
+            </ul>
+          </aside>
+        </section>
+        <section>
+          <p><span class="ino-orange"><strong>Firmware</strong></span>
+            <ul>
+              <li>Coding outside loop()</li>
+              <li>When and how to avoid delay()</li>
+              <li>Integer math: choosing datatypes and holding precision</li>
+              <li>AVR-specific hacks: timer and PWM config, datasheet usage</li>
+            </ul>
+          </p>
+          <aside class="notes">
+            <ul>
+              <li>Firmware: bulk of the talk spent here</li>
+            </ul>
+          </aside>
+        </section>
+        <section>
+          <p><span class="ino-orange"><strong>32-bit systems</strong></span>
+            <ul>
+              <li>Arduino and ESP8266</li>
+              <li>Teensyduino</li>
+            </ul>
+          </p>
+        </section>
+      </div>
+    </div>
+    <script src="reveal.js/lib/js/head.min.js"></script>
+    <script src="reveal.js/js/reveal.js"></script>
+    <script src="init.js"></script>
+  </body>
+</html>

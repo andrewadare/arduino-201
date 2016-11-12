@@ -1,0 +1,80 @@
+extends layout
+
+block title
+  //- Page title (browser tab)
+  title Arduino 201 @ SSD
+
+block content
+  div.reveal
+    div.slides
+
+      //- section(data-background-image='figs/ssd.jpeg')
+      section
+        h1 Arduino 201
+        p(style='text-align: center;').
+          #[span.ino-white #[strong Tips for your next project]]
+        p(style='text-align: center;') Todd Lawall and Andrew Adare
+        p(style='text-align: center;') December 1, 2016 @ Solid State Depot
+
+        //- Notes: push 's' for speaker view
+        aside.notes
+          ul
+            li Welcome
+            li Format for session: 1 hr presentation, then hands-on
+
+
+      section.center
+        p(style='text-align: center;') You didn't miss #[span.ino-white #[strong "Arduino 101"]] - we skipped it.
+        aside.notes
+          p We're assuming you have your IDE set up and have some basics down.
+
+
+      section.center
+        h2 outline
+
+
+      section
+        p #[span.ino-orange #[strong Hardware]]
+          ul
+            li Powering your project
+            li Current considerations, large loads
+            li Overview of MCU peripherals
+            li Signal conditioning
+        aside.notes
+          ul
+            li Hardware: how not to zap your pins, avoiding brownouts, electronics tips go here
+
+
+      section
+        p #[span.ino-orange #[strong Host software]]
+          ul
+            li Using the Arduino CLI and your own editor
+            li Writing custom library classes
+            li Communicating externally
+        aside.notes
+          ul
+            li Software: how I use the IDE as a toolchain in headless mode
+            li Firmware: bulk of the talk spent here
+
+
+      section
+        p #[span.ino-orange #[strong Firmware]]
+          ul
+            li Coding outside loop()
+            li When and how to avoid delay()
+            li Integer math: choosing datatypes and keeping precision
+            li Interrupts
+            li timer configuration and gotchas
+            li AVR-specific hacks: registers, datasheet, AVR libc definitions
+            li Sleeping and WDT
+        aside.notes
+          ul
+            li Firmware: bulk of the talk spent here
+
+
+      section
+        p #[span.ino-orange #[strong 32-bit systems]]
+          ul
+            li Arduino and ESP8266
+            li Teensyduino
+

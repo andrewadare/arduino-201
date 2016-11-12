@@ -1,0 +1,32 @@
+//- Parent layout template for Reveal.js slides
+//- `block` items are assigned in index.jade
+
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+
+    block title
+      title Default Title
+
+    //- Portability
+    meta(name='apple-mobile-web-app-capable', content='yes')
+    meta(name='apple-mobile-web-app-status-bar-style', content='black-translucent')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui')
+
+    //- CSS:
+
+    //- Reveal
+    link(rel='stylesheet', href='reveal.js/css/reveal.css')
+    //- Slide master theme
+    link(rel='stylesheet', href='css/black.css')
+    //- Syntax highlighting
+    link(rel='stylesheet', href='reveal.js/lib/css/zenburn.css')
+
+  body
+    block content
+
+    //- Load scripts
+    script(src='reveal.js/lib/js/head.min.js')
+    script(src='reveal.js/js/reveal.js')
+    script(src='init.js')
