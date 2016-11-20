@@ -29,12 +29,9 @@ block content
           p We're assuming you have your IDE set up and have some basics down.
 
 
-      section.center
-        h2 outline
-
-
       section
-        p #[span.ino-orange #[strong Hardware]]
+        h2 outline
+        p #[span.ino-orange #[strong A few hardware preliminaries]]
           ul
             li Powering your project
             li Current considerations, large loads
@@ -46,6 +43,7 @@ block content
 
 
       section
+        h2 outline
         p #[span.ino-orange #[strong Host software]]
           ul
             li Using the Arduino CLI and your own editor
@@ -58,6 +56,7 @@ block content
 
 
       section
+        h2 outline
         p #[span.ino-orange #[strong Firmware]]
           ul
             li Coding outside loop()
@@ -73,8 +72,100 @@ block content
 
 
       section
+        h2 outline
         p #[span.ino-orange #[strong 32-bit systems]]
           ul
             li Arduino and ESP8266
             li Teensyduino
 
+
+      section
+        h2 Powering your project
+        p(style='text-align: center;') [Todd]
+
+
+      section
+        h2 Driving large loads
+        p(style='text-align: center;') [up for grabs]
+
+
+      section
+        h2 MCU Hardware overview
+        p Specimen: ATMega 328P (Uno, Nano, Pro Mini, ...)
+        ul
+          li 20 GPIO pins, all with pin-change interrupt support
+          li 3 Timer/counter units: 0 (8 bit), 1 (16 bit), 2 (8 bit)
+          li 6 PWM channels
+          li 1 A/D converter (10 bits, 6 channels)
+          li Serial peripherals: I2C, SPI, and USART
+
+
+      section
+        img(data-src="figs/atmega328-pinout.png")
+
+
+      section
+        h2 Polling for changes
+        pre
+          code.cpp
+            | void loop()
+            | {
+            |   if (digitalRead(BUTTON_PIN) == LOW)
+            |     {
+            |       Serial.println("Button pressed");
+            |     }
+            |   // Other tasks here
+            | }
+        p #[span.green Pros]: Simple to program and reason about
+        p #[span.red Cons]: Delayed response; inefficient; no priority control
+
+
+      section
+        h2 Hardware Interrupt System
+        pre
+          code.cpp // TODO button interrupt example
+
+
+      section
+        h2 Internal and External Interrupts
+
+
+      //- Interrupt priorities
+      section
+        img(data-src="figs/interrupt-priorities.png")
+
+
+      section
+        h2 AVR Programming
+        p Defeating hardware abstraction for performance and control
+
+      //- [TODO: write a timing comparison sketch!]
+      section
+        h2 GPIO speedups
+        h4 Direct register i/o versus arduino
+        p AVR register R/W takes 1 instruction ($\lt$ 0.1 us @ 16MHz)!
+        p #[code.cpp digitalRead/Write] takes 50 cycles or more (4-5 us)
+        ul
+          li Function call overhead (stack address lookup)
+          li Check if the pin is on a timer
+          li Array lookup 1: integer pin number to port number (flash access)
+          li Array lookup 2: port and pin number to register address (flash access)
+        aside.notes
+          p Do you care about 4-5us? Maybe not. But this may be enough to get you through a hotspot in your code.
+
+
+      section
+        h2 Math tips
+        ul
+          //- li Know the meaning of built-in types, possibly using #[code.cpp int16_t] instead of int for clarity [TODO: look up data sizes for short, int, long, etc]
+          li Floating-point math is slow and inefficient on AVRs (no hardware FPU).
+          li Beware: some Arduino functions (e.g. p #[code.cpp map]) use integer division internally
+          li Scale up your ints to keep precision:
+        pre
+          code.cpp
+            | // convert ADC from a turnpot to an angle in degrees
+            | float angle = (float)map(adc, ADC_FULL_LEFT, ADC_FULL_RIGHT, 100*DEG_FULL_LEFT, 100*DEG_FULL_RIGHT)/100;
+
+      section
+        h1 Analog Input
+        p
