@@ -21,7 +21,7 @@ void setup()
   end = micros();
 
   Serial.print("Time (us) for 10000 digitalRead calls: ");
-  Serial.println(end - start); // 22640 us
+  Serial.println(end - start);
 
   // Time 10k AVR PIND register reads
   start = micros();
@@ -32,7 +32,7 @@ void setup()
   end = micros();
 
   Serial.print("Time (us) for 10000 AVR PIND register reads: ");
-  Serial.println(end - start); // 3448 us
+  Serial.println(end - start);
 
   pinMode(TEST_PIN, OUTPUT);
   // Time 10k digitalWrite calls
@@ -44,7 +44,7 @@ void setup()
   end = micros();
 
   Serial.print("\nTime (us) for 10000 digitalWrite calls: ");
-  Serial.println(end - start); // 22640 us
+  Serial.println(end - start);
 
   // Time 10k AVR PIND register writes
   start = micros();
@@ -55,11 +55,11 @@ void setup()
   end = micros();
 
   Serial.print("Time (us) for 10000 AVR PIND register writes: ");
-  Serial.println(end - start); // 3448 us
+  Serial.println(end - start);
 }
 
 void loop()
 {
   // digitalWrite(TEST_PIN, !digitalRead(TEST_PIN)); // 56.58 kHz on scope
-  PORTD ^= (1 << PD4); // 444.4 kHz on scope
+  PORTD ^= (1 << PD4); // 444.4 kHz on scope, about 8x faster
 }
