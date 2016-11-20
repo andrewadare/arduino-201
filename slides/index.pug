@@ -20,11 +20,31 @@ block content
         aside.notes
           ul
             li Welcome
-            li Format for session: 1 hr presentation, then hands-on
+            li Format for session: ~45-60 min. presentation, then hands-on
 
 
-      section.center
-        p(style='text-align: center;') You didn't miss #[span.ino-white #[strong "Arduino 101"]] - we skipped it.
+      section
+        h2 The Arduino IDE
+        p Why we
+        div.lefthalf
+          p #[span.green Love it]:
+          ul
+            li Accessible
+            li Free and open
+            li Community
+            li Documentation
+            li Diverse HW support
+        div.righthalf
+          p #[span.red Don't love it]:
+          ul
+            li Lousy editor
+            li Not-quite-C++
+            li Bad examples around
+            li Code can be slow
+            li #[code analogWrite]?
+        br
+        br
+        p(style='text-align: center;') BTW: You didn't miss #[span.ino-white #[strong "Arduino 101"]] - we skipped it.
         aside.notes
           p We're assuming you have your IDE set up and have some basics down.
 
@@ -105,30 +125,48 @@ block content
 
 
       section
-        h2 Polling for changes
+        h2 Responding to changes
+        h4 The polling approach
         pre
           code.cpp
             | void loop()
             | {
             |   if (digitalRead(BUTTON_PIN) == LOW)
-            |     {
-            |       Serial.println("Button pressed");
-            |     }
+            |   {
+            |     Serial.println("Button pressed");
+            |   }
             |   // Other tasks here
             | }
-        p #[span.green Pros]: Simple to program and reason about
-        p #[span.red Cons]: Delayed response; inefficient; no priority control
+        div.lefthalf
+          p #[span.green Pros]:
+          ul
+            li Simple to reason about
+            li Simple to program
+        div.righthalf
+          p #[span.red Cons]:
+          ul
+            li Delayed response
+            li Inefficient
+            li No priority control
 
 
       section
-        h2 Hardware Interrupt System
+        h2 Responding to Changes
+        h4 The Interrupt-driven Approach
         pre
           code.cpp // TODO button interrupt example
 
 
       section
         h2 Internal and External Interrupts
-
+        p TODO discuss the difference (priorities next slide)
+        p TODO AVR designations - PCINT0,1,2 go with PORTB,C,D
+        p TODO explain why Arduino pins 2,3 are special
+        p Guidelines
+        ul
+          li keep short and sweet
+          li put sensitive code in a noInterrupts()/interrupts() block
+          li (like AVR's ATOMIC_BLOCK, the most epic preprocessor definition ever)
 
       //- Interrupt priorities
       section
@@ -136,22 +174,53 @@ block content
 
 
       section
-        h2 AVR Programming
-        p Defeating hardware abstraction for performance and control
+        p #[code delay()]
+        p Think of the spinning beach ball or the hourglass on your OS...there are better alternatives.
+        p TODO example of timeMarker idiom, also possibly loop_until_bit_is_set() macro
+        p TODO mention elapsedMillis() and elapsedMicros() for teensy
 
-      //- [TODO: write a timing comparison sketch!]
+
       section
-        h2 GPIO speedups
+        h2 AVR Programming
+        p Why defeat Arduino's hardware abstraction?
+        div.lefthalf
+          p #[span.green Pros]:
+          ul
+            li Fine-grained control
+            li Significant performance gains
+            li Transparency: WYSIWYG bare-metal code
+        div.righthalf
+          p #[span.red Cons]:
+          ul
+            li Non-portable
+            li Looks esoteric
+            li Mixing APIs
+
+
+      section
+        h2 ATMega timer configuration
+        p Let's say you wish to output a PWM frequency other than the default
+        p PWM pins: 5, 6 (Timer 0); 9, 10 (Timer 1); 3, 11 (Timer 2).
+        p Base frequencies: 31350 Hz on 3, 9, 10, and 11; ~62.5 kHz on 5, 6.
+        p Reconfiguring Timer 1 does not affect millis() or delay().
+        p Default PWM frequencies are ~490 Hz, except for 5,6 at 980 Hz.
+
+
+
+      section
+        h2 Speeding up GPIO
         h4 Direct register i/o versus arduino
-        p AVR register R/W takes 1 instruction ($\lt$ 0.1 us @ 16MHz)!
-        p #[code.cpp digitalRead/Write] takes 50 cycles or more (4-5 us)
-        ul
-          li Function call overhead (stack address lookup)
-          li Check if the pin is on a timer
-          li Array lookup 1: integer pin number to port number (flash access)
-          li Array lookup 2: port and pin number to register address (flash access)
+        p AVR register R/W takes 1 instruction ($\lt$ 0.1 $\mu$s @ 16MHz)!
+        p #[code.cpp digitalRead/Write] can take 50 cycles or more (4-5 us)
         aside.notes
-          p Do you care about 4-5us? Maybe not. But this may be enough to get you through a hotspot in your code.
+          p A few us often doesn't matter, but this may be enough to get you through a hotspot in your code.
+          p Why dR and dW are slow:
+          ul
+            li Function call overhead (stack address lookup)
+            li Check if the pin is on a timer
+            li Array lookup 1: integer pin number to port number (flash access)
+            li Array lookup 2: port and pin number to register address (flash access)
+          p see http://www.codeproject.com/Articles/589299/Why-is-the-digital-I-O-in-Arduino-slow-and-what-ca
 
 
       section
@@ -167,5 +236,31 @@ block content
             | float angle = (float)map(adc, ADC_FULL_LEFT, ADC_FULL_RIGHT, 100*DEG_FULL_LEFT, 100*DEG_FULL_RIGHT)/100;
 
       section
-        h1 Analog Input
-        p
+        p(style='text-align: center;') #[span.ino-teal #[strong #[code analogRead] and Noise]]
+        p Low-pass filtering is easily implemented in firmware! Consider the #[a(href="http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm") EWMA ] for time-series ADC measurements $y_{t}$:
+        p $$ S_t = \alpha y_{t−1} + (1−\alpha) S_{t−1} \quad 0 \lt \alpha \leq 1 \quad t \geq 3 $$
+        p Let's implement this with $\alpha = 1/16$ using integer math:
+        pre
+          code.cpp
+            |void ewma(unsigned int x, unsigned int &x16)
+            |{
+            |  x16 = x + x16 - ((x16 - 8) >> 4);
+            |}
+        p This improves precision: we work with $16S_t$ instead of $S_t$
+        p $$ 16S_t = y_{t−1} + 16S_{t−1} - (16S_{t−1} - 16/2)/16 $$
+        p then divide later when reporting the measurement.
+
+
+      section
+        p [TODO: add plot of raw and smoothed ADC readings]
+
+
+      section
+        h2 Takeaways
+        ul
+          li HW abstraction is a great thing...
+          li But (judiciously) busting it is useful!
+          li Stop thinking of your MCU as just a CPU with i/o pins! Program the timer/counters and interrupt system too.
+          li Arduino is not played out - the latest devices are still targeting the platform.
+
+        p(style='text-align: center;') Thanks!!
