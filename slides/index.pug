@@ -84,7 +84,7 @@ block content
             li Integer math: choosing datatypes and keeping precision
             li Interrupts
             li timer configuration and gotchas
-            li AVR-specific hacks: registers, datasheet, AVR libc definitions
+            li AVR-specific hacks: registers, datasheet, AVR libc
             li Sleeping and WDT
         aside.notes
           ul
@@ -166,8 +166,15 @@ block content
           li Arduino mostly handles these for us (#[code Serial, Wire])
         p #[span.ino-orange Externally triggered] by voltage changes on a pin
         ul
-          li Pin-change interrupts
-          li explain why Arduino pins 2,3 are special
+          li Pin-change interrupts (available on every GPIO pin)
+          ul
+            li Only fired on change, BYO logic to do more
+          li Arduino pins 2, 3 (PD2/INT0, PD3/INT1) are special:
+          ul
+            li They have top priority
+            li Dedicated HW to trigger on rise, fall, or change
+            //- li Can even trigger continuously on low voltage
+          li Both types are handled by "callbacks" called ISRs.
 
 
       section
@@ -180,6 +187,7 @@ block content
           li Keep them short and sweet
           li put sensitive code (e.g. assignments) in a #[code noInterrupts()/interrupts()] block
           li (it's like AVR's ATOMIC_BLOCK, the most epic preprocessor definition ever)
+          li Declare variables changed in interrupts as #[code volatile] so compiler doesn't optimize them away
 
       section
         p #[code delay()]
@@ -271,6 +279,23 @@ block content
 
       section
         img(data-src="figs/adc.svg" width='100%')
+
+
+      section
+        h2 The Arduino CLI
+        p I don't care much for Arduino as an IDE, and mainly just use it as a convenient toolchain. I have these in my .bashrc
+        pre
+          code.bash
+            | alias arduino='/Applications/Arduino.app/Contents/MacOS/Arduino'
+            | alias uno='arduino --board arduino:avr:uno'
+            | alias nano='arduino --board arduino:avr:nano:cpu=atmega328'
+            | alias t3='arduino --board teensy:avr:teensy31'
+        p So I can do
+        pre
+          code.bash uno --port /dev/cu.usbmodem1234 --upload mysketch.ino
+        p For serial coms, I use the venerable #[code screen] utility:
+        pre
+          code.bash screen /dev/cu.usbmodem 115200
 
 
       section
