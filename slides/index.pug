@@ -29,7 +29,7 @@ block content
         div.lefthalf
           p #[span.green Love it]:
           ul
-            li Accessible
+            li Very approachable
             li Free and open
             li Community
             li Documentation
@@ -46,8 +46,9 @@ block content
         br
         p(style='text-align: center;') BTW: You didn't miss #[span.ino-white #[strong "Arduino 101"]] - we skipped it.
         aside.notes
-          p We're assuming you have your IDE set up and have some basics down.
-
+          ul
+            li We're assuming you have your IDE set up and have some basics down.
+            li Many examples are fine for simple tasks, but don't scale well to multitasking projects.
 
       section
         h2 outline
@@ -56,7 +57,6 @@ block content
             li Powering your project
             li Current considerations, large loads
             li Overview of MCU peripherals
-            li Signal conditioning
         aside.notes
           ul
             li Hardware: how not to zap your pins, avoiding brownouts, electronics tips go here
@@ -111,7 +111,7 @@ block content
 
       section
         h2 MCU Hardware overview
-        p Specimen: ATMega 328P (Uno, Nano, Pro Mini, ...)
+        p Our specimen: ATMega 328P (Uno, Nano, Pro Mini, ...)
         ul
           li 20 GPIO pins, all with pin-change interrupt support
           li 3 Timer/counter units: 0 (8 bit), 1 (16 bit), 2 (8 bit)
@@ -127,21 +127,22 @@ block content
       section
         h2 Responding to changes
         h4 The polling approach
+        p Consider the #[a(href="https://www.arduino.cc/en/Tutorial/StateChangeDetection") stateChangeDetection] example:
         pre
           code.cpp
-            | void loop()
-            | {
-            |   if (digitalRead(BUTTON_PIN) == LOW)
-            |   {
-            |     Serial.println("Button pressed");
+            | void loop() {
+            |   buttonState = digitalRead(buttonPin);
+            |   if (buttonState != lastButtonState) {
+            |     // Conditional logic here (LOW-HIGH vs. HIGH-LOW)...
             |   }
-            |   // Other tasks here
+            |   lastButtonState = buttonState;
+            |   // Possibly several other tasks here....
             | }
         div.lefthalf
           p #[span.green Pros]:
           ul
-            li Simple to reason about
-            li Simple to program
+            li Straightforward
+            li No chance of corruption
         div.righthalf
           p #[span.red Cons]:
           ul
@@ -158,20 +159,27 @@ block content
 
 
       section
-        h2 Internal and External Interrupts
-        p TODO discuss the difference (priorities next slide)
-        p TODO AVR designations - PCINT0,1,2 go with PORTB,C,D
-        p TODO explain why Arduino pins 2,3 are special
-        p Guidelines
+        h2 Two kinds of Interrupts
+        p #[span.ino-orange Internally triggered] by system events
         ul
-          li keep short and sweet
-          li put sensitive code in a noInterrupts()/interrupts() block
-          li (like AVR's ATOMIC_BLOCK, the most epic preprocessor definition ever)
+          li Timers, serial events, A/D complete, etc.
+          li Arduino mostly handles these for us (#[code Serial, Wire])
+        p #[span.ino-orange Externally triggered] by voltage changes on a pin
+        ul
+          li Pin-change interrupts
+          li explain why Arduino pins 2,3 are special
 
-      //- Interrupt priorities
+
       section
         img(data-src="figs/interrupt-priorities.png")
 
+
+      section
+        h2 Interrupt Programming Guidelines:
+        ul
+          li Keep them short and sweet
+          li put sensitive code (e.g. assignments) in a #[code noInterrupts()/interrupts()] block
+          li (it's like AVR's ATOMIC_BLOCK, the most epic preprocessor definition ever)
 
       section
         p #[code delay()]
@@ -206,12 +214,22 @@ block content
         p Default PWM frequencies are ~490 Hz, except for 5,6 at 980 Hz.
 
 
-
       section
         h2 Speeding up GPIO
         h4 Direct register i/o versus arduino
         p AVR register R/W takes 1 instruction ($\lt$ 0.1 $\mu$s @ 16MHz)!
         p #[code.cpp digitalRead/Write] can take 50 cycles or more (4-5 us)
+        p Timing comparison: toggle pin 4 from the CPU
+        pre
+          code.cpp
+            |void loop() {
+            |  digitalWrite(4, !digitalRead(4)); // 56.58 kHz on my scope
+            |}
+            | // vs.
+            |void loop() {
+            |  PORTD ^= (1 << PD4); // 444.4 kHz, ~8x faster
+            |}
+
         aside.notes
           p A few us often doesn't matter, but this may be enough to get you through a hotspot in your code.
           p Why dR and dW are slow:
@@ -237,22 +255,22 @@ block content
 
       section
         p(style='text-align: center;') #[span.ino-teal #[strong #[code analogRead] and Noise]]
-        p Low-pass filtering is easily implemented in firmware! Consider the #[a(href="http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm") EWMA ] for time-series ADC measurements $y_{t}$:
-        p $$ S_t = \alpha y_{t−1} + (1−\alpha) S_{t−1} \quad 0 \lt \alpha \leq 1 \quad t \geq 3 $$
-        p Let's implement this with $\alpha = 1/16$ using integer math:
+        p Low-pass filtering is easily implemented in firmware! Consider the #[a(href="http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm") EWMA ] for time-series ADC measurements $x_{t}$:
+        p $$ S_t = \alpha x_{t−1} + (1−\alpha) S_{t−1}, \quad 0 \lt \alpha \leq 1. $$
+        p Let's implement this with $\alpha = 1/16$ using integer math.
+        p To improve precision, work with $16S_t$ instead of $S_t$:
+        p $$ 16S_t = x_{t−1} + 16S_{t−1} - (16S_{t−1} - 16/2)/16 $$
         pre
           code.cpp
             |void ewma(unsigned int x, unsigned int &x16)
             |{
             |  x16 = x + x16 - ((x16 - 8) >> 4);
             |}
-        p This improves precision: we work with $16S_t$ instead of $S_t$
-        p $$ 16S_t = y_{t−1} + 16S_{t−1} - (16S_{t−1} - 16/2)/16 $$
-        p then divide later when reporting the measurement.
+        p When using the measurement, simply divide by 16.
 
 
       section
-        p [TODO: add plot of raw and smoothed ADC readings]
+        img(data-src="figs/adc.svg" width='100%')
 
 
       section
@@ -261,6 +279,6 @@ block content
           li HW abstraction is a great thing...
           li But (judiciously) busting it is useful!
           li Stop thinking of your MCU as just a CPU with i/o pins! Program the timer/counters and interrupt system too.
-          li Arduino is not played out - the latest devices are still targeting the platform.
+          li Arduino is not dying out - the latest devices are still targeting the platform.
 
         p(style='text-align: center;') Thanks!!
