@@ -129,15 +129,15 @@ block content
         h4 The polling approach
         p Consider the #[a(href="https://www.arduino.cc/en/Tutorial/StateChangeDetection") stateChangeDetection] example:
         pre
-          code.cpp
-            | void loop() {
-            |   buttonState = digitalRead(buttonPin);
-            |   if (buttonState != lastButtonState) {
-            |     // Conditional logic here (LOW-HIGH vs. HIGH-LOW)...
-            |   }
-            |   lastButtonState = buttonState;
-            |   // Possibly several other tasks here....
-            | }
+          code.cpp.
+            void loop() {
+              buttonState = digitalRead(buttonPin);
+              if (buttonState != lastButtonState) {
+                // Conditional logic here (LOW-HIGH vs. HIGH-LOW)...
+              }
+              lastButtonState = buttonState;
+              // Possibly several other tasks here....
+            }
         div.lefthalf
           p #[span.green Pros]:
           ul
@@ -155,8 +155,25 @@ block content
         h2 Responding to Changes
         h4 The Interrupt-driven Approach
         pre
-          code.cpp // TODO button interrupt example
+          code.cpp.
+            #define BUTTON_PIN 2;
+            #define LED_PIN 13;
 
+            volatile uint8_t pinState = LOW;
+
+            void setup() {
+              pinMode(LED_PIN, OUTPUT);
+              pinMode(BUTTON_PIN, INPUT_PULLUP);
+              attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), toggle, CHANGE);
+            }
+
+            void loop() {
+              digitalWrite(LED_PIN, pinState);
+            }
+
+            void toggle() {
+              pinState = !pinState;
+            }
 
       section
         h2 Two kinds of Interrupts
@@ -190,14 +207,24 @@ block content
           li Declare variables changed in interrupts as #[code volatile] so compiler doesn't optimize them away
 
       section
-        p #[code delay()]
-        p Think of the spinning beach ball or the hourglass on your OS...there are better alternatives.
-        p TODO example of timeMarker idiom, also possibly loop_until_bit_is_set() macro
-        p TODO mention elapsedMillis() and elapsedMicros() for teensy
+        p(style='text-align: center;') #[span.ino-teal #[strong When to use #[code delay()]?]]
+        p #[span.ino-orange Not often.] #[code delay()] blocks everything but interrupts. It's especially bad with polling patterns.
+        p Better to do something like this:
+        pre
+          code.cpp.
+            unsigned long timeMarker = 0;
+            const unsigned long dt = 20;
+            void loop() {
+              if (millis() - timeMarker >= dt) {
+                timeMarker = millis();
+                // Put code here that runs every dt milliseconds
+              }
+            }
 
+        p Teensyduino has #[code elapsedMillis] and #[code elapsedMicros] timers, which account for code run time to keep a tight schedule
 
       section
-        h2 AVR Programming
+        h2 AVR Programming in Arduino
         p Why defeat Arduino's hardware abstraction?
         div.lefthalf
           p #[span.green Pros]:
@@ -214,12 +241,30 @@ block content
 
 
       section
-        h2 ATMega timer configuration
-        p Let's say you wish to output a PWM frequency other than the default
-        p PWM pins: 5, 6 (Timer 0); 9, 10 (Timer 1); 3, 11 (Timer 2).
-        p Base frequencies: 31350 Hz on 3, 9, 10, and 11; ~62.5 kHz on 5, 6.
-        p Reconfiguring Timer 1 does not affect millis() or delay().
-        p Default PWM frequencies are ~490 Hz, except for 5,6 at 980 Hz.
+        h2 ATMega328 PWM info
+        p PWM pins:
+        ul
+          li 5, 6 (Timer 0)
+          li 9, 10 (Timer 1)
+          li 3, 11 (Timer 2)
+        p Base frequencies:
+        ul
+          li 31350 Hz for pins 3, 9, 10, and 11
+          li ~62.5 kHz for pins 5, 6
+        p Default PWM frequencies:
+        ul
+          li 980 Hz - pins 5, 6
+          li ~490 Hz - pins 9, 10, 3, 11
+
+
+      section
+        h2 ATMega328 PWM configuration
+
+        p Let's say you wish to output a PWM frequency other than the default.
+
+        p #[span.ino-orange Warning:] changing timers affects more than one pin, and can silently change built-in functions.
+
+        p Reconfiguring Timer 1 does not affect millis() or delay() (but borks the Servo library)
 
 
       section
@@ -229,14 +274,14 @@ block content
         p #[code.cpp digitalRead/Write] can take 50 cycles or more (4-5 us)
         p Timing comparison: toggle pin 4 from the CPU
         pre
-          code.cpp
-            |void loop() {
-            |  digitalWrite(4, !digitalRead(4)); // 56.58 kHz on my scope
-            |}
-            | // vs.
-            |void loop() {
-            |  PORTD ^= (1 << PD4); // 444.4 kHz, ~8x faster
-            |}
+          code.cpp.
+            void loop() {
+              digitalWrite(4, !digitalRead(4)); // 56.58 kHz on my scope
+            }
+             // vs.
+            void loop() {
+              PORTD ^= (1 << PD4); // 444.4 kHz, ~8x faster
+            }
 
         aside.notes
           p A few us often doesn't matter, but this may be enough to get you through a hotspot in your code.
@@ -252,14 +297,15 @@ block content
       section
         h2 Math tips
         ul
+          li always use #[code unsigned long] for timers
           //- li Know the meaning of built-in types, possibly using #[code.cpp int16_t] instead of int for clarity [TODO: look up data sizes for short, int, long, etc]
           li Floating-point math is slow and inefficient on AVRs (no hardware FPU).
           li Beware: some Arduino functions (e.g. p #[code.cpp map]) use integer division internally
           li Scale up your ints to keep precision:
         pre
-          code.cpp
-            | // convert ADC from a turnpot to an angle in degrees
-            | float angle = (float)map(adc, ADC_FULL_LEFT, ADC_FULL_RIGHT, 100*DEG_FULL_LEFT, 100*DEG_FULL_RIGHT)/100;
+          code.cpp.
+            // convert ADC from a turnpot to an angle in degrees
+            float angle = (float)map(adc, ADC_FULL_LEFT, ADC_FULL_RIGHT, 100*DEG_FULL_LEFT, 100*DEG_FULL_RIGHT)/100;
 
       section
         p(style='text-align: center;') #[span.ino-teal #[strong #[code analogRead] and Noise]]
@@ -269,11 +315,11 @@ block content
         p To improve precision, work with $16S_t$ instead of $S_t$:
         p $$ 16S_t = x_{t−1} + 16S_{t−1} - (16S_{t−1} - 16/2)/16 $$
         pre
-          code.cpp
-            |void ewma(unsigned int x, unsigned int &x16)
-            |{
-            |  x16 = x + x16 - ((x16 - 8) >> 4);
-            |}
+          code.cpp.
+            void ewma(unsigned int x, unsigned int &x16)
+            {
+              x16 = x + x16 - ((x16 - 8) >> 4);
+            }
         p When using the measurement, simply divide by 16.
 
 
