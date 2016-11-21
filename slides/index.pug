@@ -268,6 +268,18 @@ block content
 
 
       section
+        p #[span.ino-teal Example:] Set up Timer 2 for phase-correct (count-up-count-down) PWM mode, with variable PWM frequency. With the WGM22 and COM2A0 bits set, OC2A toggles based on the OCR2A value.
+        p Pin 11 frequency and duty cycle:
+        ul
+          li f = 16MHz / 64 / (2*OCR2A) / 2
+          li d = 50% (fixed)
+        p Pin 3:
+        ul
+          li f = 16MHz / 64 / OCR2A / 2
+          li d = OCR2B/OCR2A
+        p For a 500 Hz square wave on pin 3 (and 250 Hz on pin 11), use OCR2A = 250 and OCR2B = 125.
+
+      section
         h2 Speeding up GPIO
         h4 Direct register i/o versus arduino
         p AVR register R/W takes 1 instruction ($\lt$ 0.1 $\mu$s @ 16MHz)!
