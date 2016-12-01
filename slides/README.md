@@ -10,3 +10,5 @@ git clone https://github.com/hakimel/reveal.js.git
 git checkout -b 3.3.0 3.3.0  # Do this in reveal.js/
 ```
 Then, in slides/, try editing index.pug and do `pug index.pug` to generate index.html.
+
+
