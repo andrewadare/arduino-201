@@ -15,7 +15,7 @@ void setup()
 {
   analogWrite(PWM_PIN, dutyCycle);
   Serial.begin(115200);
-  Serial.println("Enter h/l to change frequency and f/s to change duty cycle")
+  Serial.println("Enter h/l to change frequency and f/s to change duty cycle");
 }
 
 void loop()
