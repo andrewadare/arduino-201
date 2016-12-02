@@ -247,28 +247,32 @@ block content
             li Mixing APIs
 
       section
-         h2 Timers
-         ul
-           li Timers in AVR are more than a clock
-           li internal clock source counting
-           li external pin change counting
-           li capture - timer value is copied at time of an event, like a stopwatch
-           li compare - timer throws interrupt when a specific value is reached
-           li When they roll over (overflow) they can fire an interrupt.
-           li Prescaler/postscaler - these are ways to stretch out the clock
+        h2 Timers
+        ul
+          li Timers in AVR are more than a clock
+          li internal clock source counting
+          li external pin change counting
+          li capture - timer value is copied at time of an event, like a stopwatch
+          li compare - timer throws interrupt when a specific value is reached
+          li When they roll over (overflow) they can fire an interrupt.
+          li Prescaler/postscaler - these are ways to stretch out the clock
 
       section
-         h2 How to read the datasheet
-         p Items to pay attention to
-         ul
-           li Peripheral information
-           li IO pins - mappings of peripherals
-           li Clock
-           li Interrupts
-           li Electrical specifications
-           ul
-             li Current limits
-             li Voltage limits
+        h2 How to read the datasheet
+        a(href="http://www.atmel.com/devices/atmega328p.aspx")
+          img(data-src="figs/atmega328-datasheet-title.png" )
+        div.lefthalf
+          p Electrical specs
+          ul
+            li Current limits
+            li Voltage limits
+        div.righthalf
+          p Programming aids
+          ul
+            li Peripheral information
+            li Timer/counter register tables
+            li Interrupts
+
 
       section
          h2 AVR Glibc avrfreaks
@@ -276,20 +280,15 @@ block content
 
 
       section
-        h2 Libraries
-        
-
-      section
-         h2 Sleep
-         ul
-           li Sleeping conserves the battery
-           li You will need an interrupt source to wake
-           li Don't forget the on board regulator
-
-         p
-         a http://playground.arduino.cc/Learning/ArduinoSleepCode
-         br
-         a http://www.engblaze.com/hush-little-microprocessor-avr-and-arduino-sleep-mode-basics/
+        h2 Sleep
+        ul
+          li Sleeping conserves the battery
+          li You will need an interrupt source to wake
+          li Don't forget the on board regulator
+        p
+        a http://playground.arduino.cc/Learning/ArduinoSleepCode
+        br
+        a http://www.engblaze.com/hush-little-microprocessor-avr-and-arduino-sleep-mode-basics/
 
       section
         h2 ATMega328 PWM info
@@ -310,11 +309,8 @@ block content
 
       section
         h2 ATMega328 PWM configuration
-
         p Let's say you wish to output a PWM frequency other than the default.
-
         p #[span.ino-orange Warning:] changing timers affects more than one pin, and can silently change built-in functions.
-
         p Reconfiguring Timer 1 does not affect millis() or delay() (but borks the Servo library)
 
 
@@ -404,7 +400,7 @@ block content
           code.bash uno --port /dev/cu.usbmodem1234 --upload mysketch.ino
 
       section
-        h2 Serial Communications (arduino side)
+        h2 Serial Coms (arduino side)
         p Setup of the hardware serial port is as simple as:
           pre
             code.cpp.
@@ -422,7 +418,7 @@ block content
               }
 
       section
-        h2 Serial Communications (arduino side)
+        h2 Serial Coms (arduino side)
         p Writing to the serial port is as easy as using the print() and println() methods
           pre
             code.cpp.
@@ -431,7 +427,7 @@ block content
               Serial.print(someInteger);
 
       section
-        h2 Serial Communications (arduino side)
+        h2 Serial Coms (arduino side)
         p Printing multiple values can be tedious, especially if you want a specific format.
         pre
           code.cpp.
@@ -449,35 +445,35 @@ block content
         p Serial printf version
         pre
           code.cpp.
-             #include <Arduino.h>
-             #include <stdarg.h>
-             #define PRINTF_BUF 80 // define the tmp buffer size (change if desired)
-             void serialPrintf(const char *format, ...)
-             {
-               char buf[PRINTF_BUF];
-               va_list ap;
-               va_start(ap, format);
-               vsnprintf(buf, sizeof(buf), format, ap);
-               for(char *p = &buf[0]; *p; p++) // emulate cooked mode for newlines
-               {
-                 if(*p == '\n')
-                 {
-                   Serial.write('\r');
-                 }
-                 Serial.write(*p);
-               }
-               va_end(ap);
-             }
+            #include <Arduino.h>
+            #include <stdarg.h>
+            #define PRINTF_BUF 80 // define the tmp buffer size (change if desired)
+            void serialPrintf(const char *format, ...)
+            {
+              char buf[PRINTF_BUF];
+              va_list ap;
+              va_start(ap, format);
+              vsnprintf(buf, sizeof(buf), format, ap);
+              for(char *p = &buf[0]; *p; p++) // emulate cooked mode for newlines
+              {
+                if(*p == '\n')
+                {
+                  Serial.write('\r');
+                }
+                Serial.write(*p);
+              }
+              va_end(ap);
+            }
 
       section
-        h2 Serial Communications (host side)
+        h2 Serial Coms (host side)
         ul
           li For serial coms, I use the venerable #[code screen] utility:
             pre
               code.bash screen /dev/cu.usbmodem 115200
           li If you need to edit the string before sending the characters down, use the Arduino Serial Monitor
           li Python #[code serial] module does well for programs interacting with an arduino
-        
+
 
       section
         h2 Scaling up or down
@@ -486,11 +482,11 @@ block content
           li Memory may be too small
           li Physical size may be too big
           li Might not have enough computing power
-          
+
         p There are other options that the Arduino environment supports.
-        
+
       section
-        h2 outline
+        h2 ATMega Alternatives
         p #[span.ino-orange #[strong 32-bit systems]]
           ul
             li Teensy (ARM based)
@@ -501,14 +497,14 @@ block content
           ul
             li ATTiny85 (smaller AVR, 8 pins)
             li PIC18F2550 (USB built in)
-  
+
         a http://playground.arduino.cc/Main/ArduinoOnOtherAtmelChips
         br
         a https://github.com/arduino/Arduino/wiki/Unofficial-list-of-3rd-party-boards-support-urls
 
-      section
-        h2 However...
-        p Not all libraries might work.  This can be caused by a library needing to use specific hardware registers that a different chip from the ATMega328 might have in a different location, or formatted differently.
+      //- section
+      //-   h2 However...
+      //-   p Not all libraries might work.  This can be caused by a library needing to use specific hardware registers that a different chip from the ATMega328 might have in a different location, or formatted differently.
 
 
       section
