@@ -4,11 +4,12 @@
 // FTM1 pins: 3, 4
 // FTM2 pins: 25, 32
 
-#define PWM_PIN 3
+#define PWM_PIN 10
+#define DIR_PIN 12
 
 int incomingByte = 0; // for incoming serial data
 
-unsigned int frequency = 488;
+unsigned int frequency = 488; // 488.28 Hz is the default PWM frequency
 unsigned int dutyCycle = 127;
 
 void setup()
@@ -26,7 +27,7 @@ void loop()
 
     if (incomingByte == 104 || incomingByte == 108) // h or l: higher or lower frequency
     {
-      frequency = incomingByte == 104 ? frequency + 1 : frequency -1;
+      frequency = incomingByte == 104 ? frequency + 1 : frequency - 1;
 
       // Note: all other pins in the timer group are also changed!
       analogWriteFrequency(PWM_PIN, frequency);
@@ -35,7 +36,7 @@ void loop()
     }
     if (incomingByte == 102 || incomingByte == 115) // f or s: faster or slower
     {
-      dutyCycle = incomingByte == 102 ? dutyCycle + 1 : dutyCycle -1;
+      dutyCycle = incomingByte == 102 ? dutyCycle + 1 : dutyCycle - 1;
       analogWrite(PWM_PIN, dutyCycle);
       Serial.print("dc: ");
       Serial.println(dutyCycle);
